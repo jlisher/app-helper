@@ -1,0 +1,11 @@
+--
+--compose-file
+--help
+--service
+--user
+--version
+-f
+-h
+-s
+-u
+-v

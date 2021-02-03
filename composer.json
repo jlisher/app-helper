@@ -1,0 +1,30 @@
+{
+  "name": "onyx-gh/app-helper",
+  "description": "App Helper is a docker compose application development helper utility.",
+  "keywords": [
+    "docker",
+    "docker-compose",
+    "helper",
+    "container",
+    "laravle",
+    "artisan",
+    "composer",
+    "app-helper"
+  ],
+  "minimum-stability": "dev",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jarryd Lisher",
+      "email": "jarryd@onxy-gh.com"
+    }
+  ],
+  "require": {
+  },
+  "bin": "./bin",
+  "scripts": {
+    "post-package-install": [
+      "./vendor/bin/app install"
+    ]
+  }
+}
