@@ -6,7 +6,7 @@ App Helper is a docker compose application development helper utility.
 
 There are a few ways in which you can install App.
 
-### 1. composer
+### 1. composer (not working yet)
 
 This is the original concept as it was created to work with laravel projects however added more generic methods and 
 tools, so we can use it in any project.
@@ -14,10 +14,10 @@ tools, so we can use it in any project.
 Install using composer, simply run the following command:
 
 ```shell
-composer reuqire onyx-gh/app-helper
+composer reuqire jlisher/app-helper
 ```
 
-### 2. npm
+### 2. npm (not working yet)
 
 While nodejs has the nvm project, which is nice, it doesn't help when you are creating container based applications
 where you have multiple containers running different versions of nodejs. For this reason we have added support for npm
@@ -29,6 +29,22 @@ Installing using npm, simply run the following command:
 npm install app-helper
 ```
 
+### 4. Git
+
+You can use git to install and update the utility. 
+
+Simply clone the repo and run the `install` command: 
+
+```shell
+git clone https://github.com/jlisher/app-helper.git
+# cd into your project directory
+cd /path/to/your/project
+# run the installation
+./path/to/app-helper/bin/app install
+```
+
+please replace `/path/to/app-helper/` with your real path to the app-helper files
+
 ### 3. Manual
 
 Simply download the files and place them in a directory within your application directory.
@@ -36,10 +52,11 @@ Simply download the files and place them in a directory within your application 
 Simply download the files and run:
 
 ```shell
-./path/to/project/app-helper/bin/app install
+./path/to/app-helper/bin/app install
 ```
 
-please replace `/path/to/project/app-helper/` with your real path to the app-helper files
+please replace `/path/to/app-helper/` with your real path to the app-helper files, 
+and `/path/to/your/project` with your project directory.
 
 ## Setup
 
