@@ -75,8 +75,7 @@
 --preserve-symlinks
 --preserve-symlinks-main
 --print
---print
---prof-process
+--prof
 --prof-process
 --redirect-warnings
 --report-compact
@@ -130,3 +129,4 @@
 -pe
 -r
 -v
+<arg>

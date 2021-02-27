@@ -3,5 +3,7 @@
   "description": "App Helper is a docker compose application development helper utility.",
   "version": "0.0.1-alpha",
   "dependencies": {
+  },
+  "bin": {
   }
 }

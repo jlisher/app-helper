@@ -6,10 +6,13 @@
     "docker-compose",
     "helper",
     "container",
-    "laravle",
+    "laravel",
     "artisan",
     "composer",
-    "app-helper"
+    "app-helper",
+    "node",
+    "nodejs",
+    "npm"
   ],
   "minimum-stability": "dev",
   "license": "MIT",
@@ -21,7 +24,9 @@
   ],
   "require": {
   },
-  "bin": "./bin",
+  "bin": [
+    "./bin/app"
+  ],
   "scripts": {
     "post-package-install": [
       "./vendor/bin/app install"
