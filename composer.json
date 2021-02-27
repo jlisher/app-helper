@@ -29,8 +29,11 @@
     "./src/app.sh"
   ],
   "scripts": {
+    "app-helper-install": [
+      "./vendor/bin/app.sh install"
+    ],
     "post-package-install": [
-      "./vendor/src/app.sh install"
+      "@app-helper-install"
     ]
   }
 }
