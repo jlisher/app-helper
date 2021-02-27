@@ -22,17 +22,17 @@ _app_helper_get_version() {
     return 0
 }
 
-_app_helper_get_filename() {
-    if [[ -n "${_APP_HELPER_FILENAME}" ]]; then
-        echo "${_APP_HELPER_FILENAME}"
+_app_helper_get_alias() {
+    if [[ -n "${_APP_HELPER_ALIAS}" ]]; then
+        echo "${_APP_HELPER_ALIAS}"
         return 0
     fi
 
-    _APP_HELPER_FILENAME="app"
+    _APP_HELPER_ALIAS="app"
 
-    export _APP_HELPER_FILENAME
+    export _APP_HELPER_ALIAS
 
-    echo "${_APP_HELPER_FILENAME}"
+    echo "${_APP_HELPER_ALIAS}"
     return 0
 }
 
@@ -82,7 +82,7 @@ _app_helper_get_path() {
         return 0
     fi
 
-    _APP_HELPER_PATH="$(_app_helper_get_dir)/bin/$(_app_helper_get_filename)"
+    _APP_HELPER_PATH="$(_app_helper_get_dir)/src/app.sh"
 
     export _APP_HELPER_PATH
 

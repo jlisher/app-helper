@@ -1,9 +1,27 @@
 {
-  "name": "app-helper",
+  "name": "jlisher-app-helper",
+  "version": "v0.0.7",
   "description": "App Helper is a docker compose application development helper utility.",
-  "version": "0.0.1-alpha",
-  "dependencies": {
+  "homepage": "https://github.com/jlisher/app-helper",
+  "bugs": {
+    "url": "https://github.com/jlisher/app-helper/issues",
+    "email": "app-helper@jlisher.com"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jarryd Lisher",
+    "email": "jarryd@jlisher.com",
+    "url": "https://jlisher.com"
   },
   "bin": {
+    "jlisher-app-helper": "./src/app.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jlisher/app-helper"
+  },
+  "dependencies": {},
+  "scripts": {
+    "postinstall": "jlisher-app-helper install"
   }
 }

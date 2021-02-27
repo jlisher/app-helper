@@ -13,7 +13,7 @@
 ################################################################################
 
 declare _APP_HELPER_NAME="${_APP_HELPER_NAME:-}"
-declare _APP_HELPER_FILENAME="${_APP_HELPER_FILENAME:-}"
+declare _APP_HELPER_ALIAS="${_APP_HELPER_ALIAS:-}"
 declare _APP_HELPER_VERSION="${APP_VERSION:-}"
 
 declare _APP_HELPER_DIR="${_APP_HELPER_DIR}"
@@ -41,7 +41,7 @@ declare _APP_HELPER_ARTISAN_INSTALLED=${_APP_HELPER_ARTISAN_INSTALLED:-}
 # Export variables
 #
 export _APP_HELPER_NAME
-export _APP_HELPER_FILENAME
+export _APP_HELPER_ALIAS
 export _APP_HELPER_VERSION
 
 export _APP_HELPER_DIR

@@ -120,4 +120,4 @@ _app_helper_completion() {
 # clear the temp storage everytime this file is sourced.
 _app_helper_clear_tmp
 
-complete -F _app_helper_completion "$(_app_helper_get_filename)"
+complete -F _app_helper_completion "$(_app_helper_get_alias)"

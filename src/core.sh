@@ -15,6 +15,9 @@ _app_helper_get_base_dir() {
     _APP_HELPER_BASE_DIR="$(pwd)"
     _APP_HELPER_BASE_DIR="$(realpath "${_APP_HELPER_BASE_DIR}")"
 
+    # make sure we are not in the `node_modules` directory
+    _APP_HELPER_BASE_DIR="${_APP_HELPER_BASE_DIR%/node_modules*}"
+
     export _APP_HELPER_BASE_DIR
 
     echo "${_APP_HELPER_BASE_DIR}"
@@ -272,7 +275,7 @@ _app_helper_install() {
 # This just sets the app helper directory and script alias, as sources the bashrc for the app helper.
 #
 export _APP_HELPER_DIR="$(_app_helper_get_dir)"
-alias $(_app_helper_get_filename)="$(_app_helper_get_path)"
+alias $(_app_helper_get_alias)="$(_app_helper_get_path)"
 [ -f "\${_APP_HELPER_DIR}/src/bashrc.sh" ] && source "\${_APP_HELPER_DIR}/src/bashrc.sh"
 EOF
 
