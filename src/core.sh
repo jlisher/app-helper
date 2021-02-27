@@ -268,15 +268,17 @@ _app_helper_install() {
     # touch the file if it doesn't exist. Just to make things more consistent later.
     [[ ! -f "${PROJECT_RC}" ]] && touch "${PROJECT_RC}"
 
+    sed -zi "s/# $(_app_helper_get_name) .bashrc\n.*\n# $(_app_helper_get_name) .bashrc\n//g" "${PROJECT_RC}"
+
     # Now lets write our helpers that will need to be `source`'d.
     cat >>"${PROJECT_RC}" <<EOF
-#
-# .bashrc for the app helper script.
+# $(_app_helper_get_name) .bashrc
 # This just sets the app helper directory and script alias, as sources the bashrc for the app helper.
 #
 export _APP_HELPER_DIR="$(_app_helper_get_dir)"
 alias $(_app_helper_get_alias)="$(_app_helper_get_path)"
 [ -f "\${_APP_HELPER_DIR}/src/bashrc.sh" ] && source "\${_APP_HELPER_DIR}/src/bashrc.sh"
+# $(_app_helper_get_name) .bashrc
 EOF
 
     # print the success message and exit

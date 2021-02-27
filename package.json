@@ -1,7 +1,20 @@
 {
   "name": "jlisher-app-helper",
-  "version": "v0.1.0",
+  "version": "v0.1.1",
   "description": "App Helper is a docker compose application development helper utility.",
+  "keywords": [
+    "docker",
+    "docker-compose",
+    "helper",
+    "container",
+    "laravel",
+    "artisan",
+    "composer",
+    "app-helper",
+    "node",
+    "nodejs",
+    "npm"
+  ],
   "homepage": "https://github.com/jlisher/app-helper",
   "bugs": {
     "url": "https://github.com/jlisher/app-helper/issues",

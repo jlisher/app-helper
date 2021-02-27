@@ -15,6 +15,8 @@ Install using composer, simply run the following command:
 
 ```shell
 composer reuqire --dev jlisher/app-helper
+# run the install script
+./vendor/bin/app.sh install
 ```
 
 ### 2. npm
