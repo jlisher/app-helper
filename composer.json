@@ -1,5 +1,5 @@
 {
-  "name": "onyx-gh/app-helper",
+  "name": "jlisher/app-helper",
   "description": "App Helper is a docker compose application development helper utility.",
   "keywords": [
     "docker",
@@ -19,7 +19,7 @@
   "authors": [
     {
       "name": "Jarryd Lisher",
-      "email": "jarryd@onxy-gh.com"
+      "email": "jarryd@jlisher.com"
     }
   ],
   "require": {
