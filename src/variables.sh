@@ -15,7 +15,7 @@ _app_helper_get_name() {
 
 _app_helper_get_version() {
     if [ -z "${_APP_HELPER_VERSION}" ]; then
-        _APP_HELPER_VERSION="v0.0.1"
+        _APP_HELPER_VERSION="v0.1.0"
     fi
 
     echo "${_APP_HELPER_VERSION}"
