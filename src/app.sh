@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Get the parent directory
-DIR="$(realpath "${0}")"
-DIR="$(dirname "${DIR}")"
+DIR="$(pwd)/$(dirname "${0}")"
+DIR="${DIR//"/./"/"/"}"
 
 # source required files
 source "${DIR}/variables.sh"

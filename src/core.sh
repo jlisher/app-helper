@@ -13,7 +13,6 @@ _app_helper_get_base_dir() {
     fi
 
     _APP_HELPER_BASE_DIR="$(pwd)"
-    _APP_HELPER_BASE_DIR="$(realpath "${_APP_HELPER_BASE_DIR}")"
 
     # make sure we are not in the `node_modules` directory
     _APP_HELPER_BASE_DIR="${_APP_HELPER_BASE_DIR%/node_modules*}"
@@ -59,7 +58,6 @@ _app_helper_get_compose_file() {
     fi
 
     _APP_HELPER_COMPOSE_FILE="$(_app_helper_get_option "base_dir")/docker-compose.yml"
-    _APP_HELPER_COMPOSE_FILE="$(realpath "${_APP_HELPER_COMPOSE_FILE}")"
 
     export _APP_HELPER_COMPOSE_FILE
 
@@ -185,11 +183,7 @@ _app_helper_get_command_install_location() {
 # Checks
 #
 _app_helper_check_install_dir() {
-    local dir
-
-    dir="$(realpath "${1}")"
-
-    [[ ! -e "${dir}/.app_helper_dir" ]] && return 1
+    [[ ! -e "${1}/.app_helper_dir" ]] && return 1
 
     return 0
 }

@@ -44,8 +44,8 @@ _app_helper_get_dir() {
 
     local dir
 
-    dir="$(realpath "${0}")"
-    dir="$(dirname "${dir}")"
+    dir="$(pwd)/$(dirname "${0}")"
+    dir="${dir//"/./"/"/"}"
 
     while ! _app_helper_check_install_dir "${dir}"; do
         if [[ "${dir}" == "/" ]]; then

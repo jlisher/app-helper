@@ -3,7 +3,7 @@
 _app_helper_clear_tmp() {
     for file in "$(_app_helper_get_tmp_dir)"/*.list; do
         if [ -w "${file}" ]; then
-            rm "$(realpath "${file}")"
+            rm "${file}"
         fi
     done
 }
