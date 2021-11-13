@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #
 # .bashrc for app utility
 #
@@ -6,24 +6,29 @@
 # advantage of this utility.
 #
 
+if [ "${_APP_HELPER_DEBUG}" = "1" ]; then
+    set -x # debugging, this is prints every command executed.
+fi
+
 ################################################################################
 # Variables
 #
 # Define some variables for easy configuration.
 ################################################################################
 
-declare _APP_HELPER_NAME="${_APP_HELPER_NAME:-}"
-declare _APP_HELPER_ALIAS="${_APP_HELPER_ALIAS:-}"
-declare _APP_HELPER_VERSION="${APP_VERSION:-}"
+export _APP_HELPER_NAME="${_APP_HELPER_NAME:-}"
+export _APP_HELPER_ALIAS="${_APP_HELPER_ALIAS:-}"
+export _APP_HELPER_VERSION="${APP_VERSION:-}"
 
-declare _APP_HELPER_DIR="${_APP_HELPER_DIR}"
-declare _APP_HELPER_PATH="${APP_PATH:-}"
-declare _APP_HELPER_TEMP_DIR="${_APP_HELPER_TEMP_DIR:-}"
+export _APP_HELPER_DIR="${_APP_HELPER_DIR}"
+export _APP_HELPER_PATH="${APP_PATH:-}"
+export _APP_HELPER_TEMP_DIR="${_APP_HELPER_TEMP_DIR:-}"
 
-declare _APP_HELPER_BASE_DIR="${_APP_HELPER_BASE_DIR:-}"
-declare _APP_HELPER_USER="${_APP_HELPER_USER:-}"
-declare _APP_HELPER_SERVICE="${_APP_HELPER_SERVICE:-}"
-declare _APP_HELPER_COMPOSE_FILE="${_APP_HELPER_COMPOSE_FILE:-}"
+export _APP_HELPER_BASE_DIR="${_APP_HELPER_BASE_DIR:-}"
+export _APP_HELPER_USER="${_APP_HELPER_USER:-}"
+export _APP_HELPER_CUID="${_APP_HELPER_CUID:-}"
+export _APP_HELPER_SERVICE="${_APP_HELPER_SERVICE:-}"
+export _APP_HELPER_COMPOSE_FILE="${_APP_HELPER_COMPOSE_FILE:-}"
 
 # Is packages installed and where
 # values:
@@ -31,17 +36,11 @@ declare _APP_HELPER_COMPOSE_FILE="${_APP_HELPER_COMPOSE_FILE:-}"
 #   1: installed inside the service
 #   2: installed on the host
 #   "SERVICE_NAME": the name of the service that should run npm commands (Not Implemented)
-declare _APP_HELPER_NODE_INSTALLED=${_APP_HELPER_NODE_INSTALLED:-}
-declare _APP_HELPER_NPM_INSTALLED=${_APP_HELPER_NPM_INSTALLED:-}
-declare _APP_HELPER_PHP_INSTALLED=${_APP_HELPER_PHP_INSTALLED:-}
-declare _APP_HELPER_COMPOSER_INSTALLED=${_APP_HELPER_COMPOSER_INSTALLED:-}
-declare _APP_HELPER_ARTISAN_INSTALLED=${_APP_HELPER_ARTISAN_INSTALLED:-}
-
-################################################################################
-# functions
-#
-# source the functionality required
-################################################################################
+export _APP_HELPER_NODE_INSTALLED=${_APP_HELPER_NODE_INSTALLED:-}
+export _APP_HELPER_NPM_INSTALLED=${_APP_HELPER_NPM_INSTALLED:-}
+export _APP_HELPER_PHP_INSTALLED=${_APP_HELPER_PHP_INSTALLED:-}
+export _APP_HELPER_COMPOSER_INSTALLED=${_APP_HELPER_COMPOSER_INSTALLED:-}
+export _APP_HELPER_ARTISAN_INSTALLED=${_APP_HELPER_ARTISAN_INSTALLED:-}
 
 ################################################################################
 # Global variables used by App helper
@@ -68,7 +67,7 @@ _app_helper_get_version() {
 }
 
 _app_helper_get_alias() {
-    if [[ -n "${_APP_HELPER_ALIAS}" ]]; then
+    if [ -n "${_APP_HELPER_ALIAS}" ]; then
         echo "${_APP_HELPER_ALIAS}"
         return 0
     fi
@@ -81,24 +80,22 @@ _app_helper_get_alias() {
 }
 
 _app_helper_get_dir() {
-    if [[ -n "${_APP_HELPER_DIR}" ]]; then
+    if [ -n "${_APP_HELPER_DIR}" ]; then
         echo "${_APP_HELPER_DIR}"
         return 0
     fi
 
-    local dir
-
     dir="${0}"
     dir="$(dirname "${dir}")"
     dir="$(
-        cd "${dir}" || exit 1
+        cd "${dir}" || return 1
         pwd
     )"
 
     while ! _app_helper_check_install_dir "${dir}"; do
-        if [[ "${dir}" == "/" ]]; then
+        if [ "${dir}" = "/" ]; then
             _app_helper_print_error_message "Could not find app helper directory."
-            exit 1
+            return 1
         fi
 
         dir="$(dirname "${dir}")"
@@ -110,7 +107,7 @@ _app_helper_get_dir() {
 }
 
 _app_helper_get_tmp_dir() {
-    if [[ -n "${_APP_HELPER_TEMP_DIR}" ]]; then
+    if [ -n "${_APP_HELPER_TEMP_DIR}" ]; then
         echo "${_APP_HELPER_TEMP_DIR}"
         return 0
     fi
@@ -124,13 +121,12 @@ _app_helper_get_tmp_dir() {
 }
 
 _app_helper_get_path() {
-    if [[ -n "${_APP_HELPER_PATH}" ]]; then
+    if [ -n "${_APP_HELPER_PATH}" ]; then
         echo "${_APP_HELPER_PATH}"
         return 0
     fi
 
     _APP_HELPER_PATH="$(_app_helper_get_dir)/src/app.sh"
-    #    _APP_HELPER_PATH="_app_helper_run"
 
     export _APP_HELPER_PATH
 
@@ -140,6 +136,7 @@ _app_helper_get_path() {
 
 ################################################################################
 # Print helpers used by App helper
+# For colours: https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 ################################################################################
 
 _app_helper_print_help() {
@@ -163,7 +160,7 @@ COMMAND
 OPTIONS
     These are just extra parameters/options for the COMMAND used.
 
-    -u | --user USER            Set the user to be used inside the container.
+    -u | --user USER            Set the user to be used inside the container. Ignored if not running as root inside the container.
     -f | --compose-file FILE    docker-compose.yml file to use.
     -s | --service NAME         The name of the service in the docker-compose.yml file.
     -h | --help                 Print this message and exit.
@@ -200,12 +197,12 @@ _app_helper_print_info_message() {
 }
 
 _app_helper_print_warning_message() {
-    echo "WARNING: ${1}"
+    echo "\033[0;33mWARNING: ${1}\033[0m"
     return 0
 }
 
 _app_helper_print_error_message() {
-    echo "ERROR: ${1}"
+    echo "\033[0;31mERROR: ${1}\033[0m"
     return 0
 }
 
@@ -220,11 +217,15 @@ _app_helper_print_message() {
 # These are used to allow for a dynamic consistent API
 ################################################################################
 
-declare -A _app_helper_options_map
-_app_helper_pass_thru_array=()
+export _app_helper_pass_thru=""
+export _app_helper_options_map_base_dir=""
+export _app_helper_options_map_compose_file=""
+export _app_helper_options_map_user=""
+export _app_helper_options_map_service=""
+export _app_helper_options_map_command=""
 
 _app_helper_get_base_dir() {
-    if [[ -n "${_APP_HELPER_BASE_DIR}" ]]; then
+    if [ -n "${_APP_HELPER_BASE_DIR}" ]; then
         echo "${_APP_HELPER_BASE_DIR}"
         return 0
     fi
@@ -241,7 +242,7 @@ _app_helper_get_base_dir() {
 }
 
 _app_helper_get_user() {
-    if [[ -n "${_APP_HELPER_USER}" ]]; then
+    if [ -n "${_APP_HELPER_USER}" ]; then
         echo "${_APP_HELPER_USER}"
         return 0
     fi
@@ -255,7 +256,7 @@ _app_helper_get_user() {
 }
 
 _app_helper_get_service() {
-    if [[ -n "${_APP_HELPER_SERVICE}" ]]; then
+    if [ -n "${_APP_HELPER_SERVICE}" ]; then
         echo "${_APP_HELPER_SERVICE}"
         return 0
     fi
@@ -269,7 +270,7 @@ _app_helper_get_service() {
 }
 
 _app_helper_get_compose_file() {
-    if [[ -n "${_APP_HELPER_COMPOSE_FILE}" ]]; then
+    if [ -n "${_APP_HELPER_COMPOSE_FILE}" ]; then
         echo "${_APP_HELPER_COMPOSE_FILE}"
         return 0
     fi
@@ -282,35 +283,65 @@ _app_helper_get_compose_file() {
     return 0
 }
 
-_app_helper_get_option() {
-    local name
-
-    name="${1}"
-
-    if [[ -n "${_app_helper_options_map[${name}]}" ]]; then
-        echo "${_app_helper_options_map[${name}]}"
+_app_helper_get_cuid() {
+    if [ -n "${_APP_HELPER_CUID}" ]; then
+        echo "${_APP_HELPER_CUID}"
         return 0
     fi
+
+    _APP_HELPER_CUID="$(_app_helper_run_get_cuid)"
+
+    export _APP_HELPER_CUID
+
+    echo "${_APP_HELPER_CUID}"
+    return 0
+}
+
+_app_helper_get_option() {
+    name="${1}"
 
     case "${name}" in
     base_dir)
-        _app_helper_options_map[base_dir]="$(_app_helper_get_base_dir)"
+        if [ -z "${_app_helper_options_map_base_dir}" ]; then
+            _app_helper_options_map_base_dir="$(_app_helper_get_base_dir)"
+            export _app_helper_options_map_base_dir
+        fi
+
+        echo "${_app_helper_options_map_base_dir}"
+        return 0
         ;;
     compose_file)
-        _app_helper_options_map[compose_file]="$(_app_helper_get_compose_file)"
+        if [ -z "${_app_helper_options_map_compose_file}" ]; then
+            _app_helper_options_map_compose_file="$(_app_helper_get_compose_file)"
+            export _app_helper_options_map_compose_file
+        fi
+
+        echo "${_app_helper_options_map_compose_file}"
+        return 0
         ;;
     user)
-        _app_helper_options_map[user]="$(_app_helper_get_user)"
+        if [ -z "${_app_helper_options_map_user}" ]; then
+            _app_helper_options_map_user="$(_app_helper_get_user)"
+            export _app_helper_options_map_user
+        fi
+
+        echo "${_app_helper_options_map_user}"
+        return 0
         ;;
     service)
-        _app_helper_options_map[service]="$(_app_helper_get_service)"
+        if [ -z "${_app_helper_options_map_service}" ]; then
+            _app_helper_options_map_service="$(_app_helper_get_service)"
+            export _app_helper_options_map_service
+        fi
+
+        echo "${_app_helper_options_map_service}"
+        return 0
+        ;;
+    command)
+        echo "${_app_helper_options_map_command}"
+        return 0
         ;;
     esac
-
-    if [[ -n "${_app_helper_options_map[${name}]}" ]]; then
-        echo "${_app_helper_options_map[${name}]}"
-        return 0
-    fi
 
     _app_helper_print_error_message "OPTION not defined: ${name}"
     exit 1
@@ -318,16 +349,14 @@ _app_helper_get_option() {
 
 # This should maybe be cleaned up but works for now
 _app_helper_get_command_install_location() {
-    local name
-
     name="${1}"
 
     case "${name}" in
     node)
-        if [[ -z "${_APP_HELPER_NODE_INSTALLED}" ]]; then
-            if [[ -n $($(_app_helper_get_path) command -- -v node) ]]; then
+        if [ -z "${_APP_HELPER_NODE_INSTALLED}" ]; then
+            if [ -n "$($(_app_helper_get_path) command -- -v node)" ]; then
                 _APP_HELPER_NODE_INSTALLED=1
-            elif [[ -n $(command -v node) ]]; then
+            elif [ -n "$(command -v node)" ]; then
                 _APP_HELPER_NODE_INSTALLED=2
             else
                 _APP_HELPER_NODE_INSTALLED=0
@@ -339,7 +368,7 @@ _app_helper_get_command_install_location() {
         echo "${_APP_HELPER_NODE_INSTALLED}"
         ;;
     npm)
-        if [[ -z "${_APP_HELPER_NPM_INSTALLED}" ]]; then
+        if [ -z "${_APP_HELPER_NPM_INSTALLED}" ]; then
             _APP_HELPER_NPM_INSTALLED="$(_app_helper_get_command_install_location "node")"
             export _APP_HELPER_NPM_INSTALLED
         fi
@@ -347,10 +376,10 @@ _app_helper_get_command_install_location() {
         echo "${_APP_HELPER_NPM_INSTALLED}"
         ;;
     php)
-        if [[ -z "${_APP_HELPER_PHP_INSTALLED}" ]]; then
-            if [[ -n $($(_app_helper_get_path) command -- -v php) ]]; then
+        if [ -z "${_APP_HELPER_PHP_INSTALLED}" ]; then
+            if [ -n "$($(_app_helper_get_path) command -- -v php)" ]; then
                 _APP_HELPER_PHP_INSTALLED=1
-            elif [[ -n $(command -v php) ]]; then
+            elif [ -n "$(command -v php)" ]; then
                 _APP_HELPER_PHP_INSTALLED=2
             else
                 _APP_HELPER_PHP_INSTALLED=0
@@ -362,10 +391,10 @@ _app_helper_get_command_install_location() {
         echo "${_APP_HELPER_PHP_INSTALLED}"
         ;;
     artisan)
-        if [[ -z "${_APP_HELPER_ARTISAN_INSTALLED}" ]]; then
+        if [ -z "${_APP_HELPER_ARTISAN_INSTALLED}" ]; then
             _APP_HELPER_ARTISAN_INSTALLED="$(_app_helper_get_command_install_location "php")"
 
-            if [[ "${_APP_HELPER_ARTISAN_INSTALLED}" -gt 0 ]] && [[ ! -x "$(_app_helper_get_base_dir)/artisan" ]]; then
+            if [ "${_APP_HELPER_ARTISAN_INSTALLED}" -gt 0 ] && [ ! -f "$(_app_helper_get_base_dir)/artisan" ]; then
                 _APP_HELPER_ARTISAN_INSTALLED=0
             fi
 
@@ -375,10 +404,10 @@ _app_helper_get_command_install_location() {
         echo "${_APP_HELPER_ARTISAN_INSTALLED}"
         ;;
     composer)
-        if [[ -z "${_APP_HELPER_COMPOSER_INSTALLED}" ]]; then
-            if [[ -n $($(_app_helper_get_path) command -- -v composer) ]]; then
+        if [ -z "${_APP_HELPER_COMPOSER_INSTALLED}" ]; then
+            if [ -n "$($(_app_helper_get_path) command -- -v composer)" ]; then
                 _APP_HELPER_COMPOSER_INSTALLED=1
-            elif [[ -n $(command -v composer) ]]; then
+            elif [ -n "$(command -v composer)" ]; then
                 _APP_HELPER_COMPOSER_INSTALLED=2
             else
                 _APP_HELPER_COMPOSER_INSTALLED=0
@@ -401,19 +430,18 @@ _app_helper_get_command_install_location() {
 ################################################################################
 
 _app_helper_check_install_dir() {
-    [[ ! -e "${1}/.app_helper_dir" ]] && return 1
+    [ ! -e "${1}/.app_helper_dir" ] && return 1
 
     return 0
 }
 
 _app_helper_check_command_install() {
-    local name error=0
-
+    error=0
     name="${1}"
 
-    [[ "$(_app_helper_get_command_install_location "${name}")" -eq 0 ]] && error=1
+    [ "$(_app_helper_get_command_install_location "${name}")" -eq 0 ] && error=1
 
-    if [[ "${error}" -ne 0 ]]; then
+    if [ "${error}" -ne 0 ]; then
         _app_helper_print_error_message "${name} is not installed in the container or on the host."
         _app_helper_print_error_message "Please install ${name}."
         exit 1
@@ -426,7 +454,7 @@ _app_helper_check_command_install() {
 
 _app_helper_collect_arguments() {
     # parse options
-    while [[ ! "${1}" == '--' ]] && [[ -n "${1}" ]]; do
+    while [ ! "${1}" = '--' ] && [ -n "${1}" ]; do
         case "${1}" in
         -v | --version)
             _app_helper_print_version
@@ -436,27 +464,36 @@ _app_helper_collect_arguments() {
             ;;
         -b | --base-dir | --base-directory)
             shift
-            _app_helper_options_map[base_dir]="${1}"
+            _app_helper_options_map_base_dir="${1}"
+            export _app_helper_options_map_base_dir
             ;;
         -f | --compose-file)
             shift
-            _app_helper_options_map[compose_file]="${1}"
+            _app_helper_options_map_compose_file="${1}"
+            export _app_helper_options_map_compose_file
             ;;
         -u | --user)
             shift
-            _app_helper_options_map[user]="${1}"
+            _app_helper_options_map_user="${1}"
+            export _app_helper_options_map_user
             ;;
         -s | --service)
             shift
-            _app_helper_options_map[service]="${1}"
+            _app_helper_options_map_service="${1}"
+            export _app_helper_options_map_service
+            ;;
+        # catch any options (args starting with `-`)
+        -*)
+            _app_helper_pass_thru="${_app_helper_pass_thru} ${1}"
             ;;
         *)
             # parse command
-            if [[ ! "${1}" =~ ^- ]] && [[ -z "${_app_helper_options_map[command]}" ]]; then
-                _app_helper_options_map[command]="${1}"
+            if [ -z "${_app_helper_options_map_command}" ]; then
+                _app_helper_options_map_command="${1}"
+                export _app_helper_options_map_command
             else
                 # add all unneeded arguments to the `_app_helper_pass_thru_array` array
-                _app_helper_pass_thru_array+=("${1}")
+                _app_helper_pass_thru="${_app_helper_pass_thru} ${1}"
             fi
             ;;
         esac
@@ -464,24 +501,69 @@ _app_helper_collect_arguments() {
     done
 
     # check for pass thru argument and shift it off
-    if [[ "${1}" == '--' ]]; then
+    if [ "${1}" = '--' ]; then
         shift
     fi
 
     # add all remaining arguments to the `_app_helper_pass_thru_array` array
-    while [[ -n "${1}" ]]; do
-        _app_helper_pass_thru_array+=("${1}")
+    while [ -n "${1}" ]; do
+        _app_helper_pass_thru="${_app_helper_pass_thru} ${1}"
         shift
     done
+
+    export _app_helper_pass_thru
 }
 
 _app_helper_install() {
     PROJECT_RC="$(_app_helper_get_base_dir)/.bashrc"
 
-    # touch the file if it doesn't exist. Just to make things more consistent later.
-    [[ ! -f "${PROJECT_RC}" ]] && touch "${PROJECT_RC}"
+    TEMP_FILE="$(_app_helper_get_tmp_dir)/~.bashrc.tmp"
+    EDITABLE=0
+    EDITABLE_PREV=0
 
-    sed -zi "s/# $(_app_helper_get_name) .bashrc\n.*\n# $(_app_helper_get_name) .bashrc\n//g" "${PROJECT_RC}"
+    can_erase() {
+        if test "${EDITABLE}" = "1" || test "${EDITABLE_PREV}" = "1"; then
+            return 0
+        fi
+
+        return 1
+    }
+
+    process_line() {
+        line="${1}"
+
+        # to make sure we catch the last flag
+        EDITABLE_PREV="${EDITABLE}"
+        export EDITABLE_PREV
+
+        if [ "${line}" = "# $(_app_helper_get_name) .bashrc" ]; then
+            if can_erase; then
+                EDITABLE=0
+            else
+                EDITABLE=1
+            fi
+
+            export EDITABLE
+        fi
+    }
+
+    # process current .bashrc file
+    if test -f "${PROJECT_RC}"; then
+        touch "${TEMP_FILE}"
+
+        # shellcheck disable=SC2002
+        cat "${PROJECT_RC}" | while read -r line; do
+            process_line "${line}"
+
+            if ! can_erase; then
+                echo "${line}" >>"${TEMP_FILE}"
+            fi
+        done
+
+        mv "${TEMP_FILE}" "${PROJECT_RC}"
+    else
+        touch "${PROJECT_RC}"
+    fi
 
     # Now lets write our helpers that will need to be `source`'d.
     cat >>"${PROJECT_RC}" <<EOF
@@ -491,31 +573,34 @@ _app_helper_install() {
 _APP_HELPER_DIR="$(_app_helper_get_dir)"
 source "\${_APP_HELPER_DIR}/src/bashrc.sh"
 alias $(_app_helper_get_alias)="$(_app_helper_get_path)"
-_app_helper_load_environment
-_app_helper_clear_tmp
-complete -o default -F _app_helper_completion "$(_app_helper_get_alias)"
 
 #
 # Export variables
 #
-export _APP_HELPER_NAME
-export _APP_HELPER_ALIAS
-export _APP_HELPER_VERSION
+export _APP_HELPER_BASE_DIR="$(_app_helper_get_base_dir)"
+export _APP_HELPER_USER="$(_app_helper_get_user)"
+export _APP_HELPER_CUID="$(_app_helper_run_get_cuid)"
+export _APP_HELPER_SERVICE="$(_app_helper_get_service)"
+export _APP_HELPER_COMPOSE_FILE="$(_app_helper_get_compose_file)"
 
-export _APP_HELPER_DIR
-export _APP_HELPER_PATH
-export _APP_HELPER_TMP_DIR
+# Is packages installed and where
+# values:
+#   0: not installed
+#   1: installed inside the service
+#   2: installed on the host
+#   "SERVICE_NAME": the name of the service that should run npm commands (Not Implemented)
+export _APP_HELPER_NODE_INSTALLED="${_APP_HELPER_NODE_INSTALLED:-}"
+export _APP_HELPER_NPM_INSTALLED="${_APP_HELPER_NPM_INSTALLED:-}"
+export _APP_HELPER_PHP_INSTALLED="${_APP_HELPER_PHP_INSTALLED:-}"
+export _APP_HELPER_COMPOSER_INSTALLED="${_APP_HELPER_COMPOSER_INSTALLED:-}"
+export _APP_HELPER_ARTISAN_INSTALLED="${_APP_HELPER_ARTISAN_INSTALLED:-}"
 
-export _APP_HELPER_BASE_DIR
-export _APP_HELPER_USER
-export _APP_HELPER_SERVICE
-export _APP_HELPER_COMPOSE_FILE
-
-export _APP_HELPER_NODE_INSTALLED
-export _APP_HELPER_NPM_INSTALLED
-export _APP_HELPER_PHP_INSTALLED
-export _APP_HELPER_COMPOSER_INSTALLED
-export _APP_HELPER_ARTISAN_INSTALLED
+#
+# Load the environment
+#
+_app_helper_load_environment
+_app_helper_clear_tmp
+complete -o default -F _app_helper_completion "$(_app_helper_get_alias)"
 
 # $(_app_helper_get_name) .bashrc
 EOF
@@ -530,8 +615,6 @@ EOF
 }
 
 _app_helper_run_command() {
-    local command
-
     command="$(_app_helper_get_option "command")"
 
     _app_helper_check_command_install "${command}"
@@ -571,39 +654,56 @@ _app_helper_run_command() {
 }
 
 _app_helper_run_down() {
-    docker-compose -f "$(_app_helper_get_option "compose_file")" down "$(_app_helper_get_option "service")" "${_app_helper_pass_thru_array[@]}"
+    docker-compose -f "$(_app_helper_get_option "compose_file")" down "$(_app_helper_get_option "service")" "${_app_helper_pass_thru}"
 
     exit $?
 }
 
 _app_helper_run_up() {
-    docker-compose -f "$(_app_helper_get_option "compose_file")" up "$(_app_helper_get_option "service")" "${_app_helper_pass_thru_array[@]}"
+    docker-compose -f "$(_app_helper_get_option "compose_file")" up "$(_app_helper_get_option "service")" "${_app_helper_pass_thru}"
 
     exit $?
 }
 
 _app_helper_run_shell() {
-    docker-compose -f "$(_app_helper_get_option "compose_file")" exec "$(_app_helper_get_option "service")" su -s /bin/sh "$(_app_helper_get_option "user")"
+    # don't use su for execution if we are not running as root.
+    case "$(_app_helper_get_cuid)" in
+    0*)
+        docker-compose -f "$(_app_helper_get_option "compose_file")" exec "$(_app_helper_get_option "service")" su -s /bin/sh "$(_app_helper_get_option "user")"
+        ;;
+    *)
+        docker-compose -f "$(_app_helper_get_option "compose_file")" exec "$(_app_helper_get_option "service")" /bin/sh -l
+        ;;
+    esac
 
     exit $?
 }
 
 _app_helper_run_container() {
-    local command
-
     command="${1}"
 
-    docker-compose -f "$(_app_helper_get_option "compose_file")" exec "$(_app_helper_get_option "service")" su -s /bin/sh -c "${command} ${_app_helper_pass_thru_array[*]}" "$(_app_helper_get_option "user")"
-
+    # don't use su for execution if we are not running as root.
+    case "$(_app_helper_get_cuid)" in
+    0*)
+        docker-compose -f "$(_app_helper_get_option "compose_file")" exec "$(_app_helper_get_option "service")" su -s /bin/sh -c "${command} ${_app_helper_pass_thru}" "$(_app_helper_get_option "user")"
+        ;;
+    *)
+        docker-compose -f "$(_app_helper_get_option "compose_file")" exec "$(_app_helper_get_option "service")" /bin/sh -c "${command} ${_app_helper_pass_thru}"
+        ;;
+    esac
     exit $?
 }
 
-_app_helper_run_local() {
-    local command
+_app_helper_run_get_cuid() {
+    # for some reason `\r` is printed with the uid, so piping to `sed 's/\r//'` to clean that up.
+    docker-compose -f "$(_app_helper_get_option "compose_file")" exec "$(_app_helper_get_option "service")" id -u | sed 's/\r//'
+    return $?
+}
 
+_app_helper_run_local() {
     command="${1}"
 
-    "${command}" "${_app_helper_pass_thru_array[@]}"
+    "${command}" "${_app_helper_pass_thru}"
 
     exit $?
 }
@@ -632,8 +732,15 @@ _app_helper_load_environment() {
 }
 
 _app_helper_run() {
+    # reset options
+    export _app_helper_pass_thru=""
+    export _app_helper_options_map_base_dir=""
+    export _app_helper_options_map_compose_file=""
+    export _app_helper_options_map_user=""
+    export _app_helper_options_map_service=""
+
     # Help if no arguments passed
-    [[ "$#" -eq 0 ]] && _app_helper_print_help
+    [ "$#" -eq 0 ] && _app_helper_print_help
 
     # Collect passed arguments
     _app_helper_collect_arguments "$@"
@@ -649,8 +756,6 @@ _app_helper_run() {
 ################################################################################
 
 _app_helper_commands_completions() {
-    local file
-
     file="$(_app_helper_get_dir)/conf/completion_commands.list"
 
     cat <"${file}" | tr "[:space:]" " "
@@ -659,8 +764,6 @@ _app_helper_commands_completions() {
 }
 
 _app_helper_options_completions() {
-    local file
-
     file="$(_app_helper_get_dir)/conf/completion_options.list"
 
     cat <"${file}" | tr "[:space:]" " "
@@ -669,16 +772,14 @@ _app_helper_options_completions() {
 }
 
 _app_helper_composer_completions() {
-    if [[ "$(_app_helper_get_command_install_location "composer")" -eq 0 ]]; then
+    if [ "$(_app_helper_get_command_install_location "composer")" -eq 0 ]; then
         return 0
     fi
 
-    local file
-
     file="$(_app_helper_get_tmp_dir)/composer_commands.list"
 
-    if [[ ! -f "${file}" ]] && [[ -w "$(dirname "${file}")" ]]; then
-        $(_app_helper_get_path) composer -- --raw --no-ansi list | sed "s/[[:space:]].*//" | sed "s/[[:space:]]//" >"${file}"
+    if [ ! -f "${file}" ] && [ -w "$(dirname "${file}")" ]; then
+        $(_app_helper_get_path) composer -- list --format=json | jq -r .namespaces[].commands[] >"${file}"
     fi
 
     cat <"${file}" | tr "[:space:]" " "
@@ -687,16 +788,14 @@ _app_helper_composer_completions() {
 }
 
 _app_helper_artisan_completions() {
-    if [[ "$(_app_helper_get_command_install_location "artisan")" -eq 0 ]]; then
+    if [ "$(_app_helper_get_command_install_location "artisan")" -eq 0 ]; then
         return 0
     fi
 
-    local file
-
     file="$(_app_helper_get_tmp_dir)/artisan_commands.list"
 
-    if [[ ! -f "${file}" ]] && [[ -w "$(dirname "${file}")" ]]; then
-        $(_app_helper_get_path) artisan -- --raw --no-ansi list | sed "s/[[:space:]].*//" | sed "s/[[:space:]]//" >"${file}"
+    if [ ! -f "${file}" ] && [ -w "$(dirname "${file}")" ]; then
+        $(_app_helper_get_path) artisan -- list --format=json | jq -r .namespaces[].commands[] >"${file}"
     fi
 
     cat <"${file}" | tr "[:space:]" " "
@@ -705,11 +804,9 @@ _app_helper_artisan_completions() {
 }
 
 _app_helper_npm_commands_completions() {
-    if [[ "$(_app_helper_get_command_install_location "npm")" -eq 0 ]]; then
+    if [ "$(_app_helper_get_command_install_location "npm")" -eq 0 ]; then
         return 0
     fi
-
-    local file
 
     file="$(_app_helper_get_dir)/conf/npm_commands.list"
 
@@ -719,11 +816,9 @@ _app_helper_npm_commands_completions() {
 }
 
 _app_helper_node_options_completions() {
-    if [[ "$(_app_helper_get_command_install_location "node")" -eq 0 ]]; then
+    if [ "$(_app_helper_get_command_install_location "node")" -eq 0 ]; then
         return 0
     fi
-
-    local file
 
     file="$(_app_helper_get_dir)/conf/node_options.list"
 
@@ -733,8 +828,6 @@ _app_helper_node_options_completions() {
 }
 
 _app_helper_completion() {
-    local word_list cur_command
-
     if [ "${COMP_CWORD}" -eq 1 ]; then
         word_list="$(_app_helper_commands_completions)"
     else
@@ -762,10 +855,8 @@ _app_helper_completion() {
 
     if [ -n "${word_list}" ]; then
         word_list="${word_list} $(_app_helper_options_completions)"
-        # shellcheck disable=SC2207
         COMPREPLY=($(compgen -W "${word_list}" -- "${COMP_WORDS[COMP_CWORD]}"))
     else
-        # shellcheck disable=SC2207
         COMPREPLY=($(compgen -o default -- "${COMP_WORDS[COMP_CWORD]}"))
     fi
 
