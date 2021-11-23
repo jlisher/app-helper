@@ -516,49 +516,13 @@ _app_helper_collect_arguments() {
 
 _app_helper_install() {
     PROJECT_RC="$(_app_helper_get_base_dir)/.bashrc"
-
     TEMP_FILE="$(_app_helper_get_tmp_dir)/~.bashrc.tmp"
-    EDITABLE=0
-    EDITABLE_PREV=0
-
-    can_erase() {
-        if test "${EDITABLE}" = "1" || test "${EDITABLE_PREV}" = "1"; then
-            return 0
-        fi
-
-        return 1
-    }
-
-    process_line() {
-        line="${1}"
-
-        # to make sure we catch the last flag
-        EDITABLE_PREV="${EDITABLE}"
-        export EDITABLE_PREV
-
-        if [ "${line}" = "# $(_app_helper_get_name) .bashrc" ]; then
-            if can_erase; then
-                EDITABLE=0
-            else
-                EDITABLE=1
-            fi
-
-            export EDITABLE
-        fi
-    }
 
     # process current .bashrc file
     if test -f "${PROJECT_RC}"; then
-        touch "${TEMP_FILE}"
-
-        # shellcheck disable=SC2002
-        cat "${PROJECT_RC}" | while read -r line; do
-            process_line "${line}"
-
-            if ! can_erase; then
-                echo "${line}" >>"${TEMP_FILE}"
-            fi
-        done
+        jq --raw-output --raw-input --slurp \
+            'split("\n") | {lines: ., first: index("# App Helper .bashrc"), last: rindex("# App Helper .bashrc")} | {pre_plucked: .lines[:.first], post_plucked: .lines[(.last + 1):]} | flatten | join("\n")' \
+            "${PROJECT_RC}" >"${TEMP_FILE}"
 
         mv "${TEMP_FILE}" "${PROJECT_RC}"
     else
@@ -758,7 +722,7 @@ _app_helper_run() {
 _app_helper_commands_completions() {
     file="$(_app_helper_get_dir)/conf/completion_commands.list"
 
-    cat <"${file}" | tr "[:space:]" " "
+    jq --raw-output --raw-input --slurp 'split("\n") | join(" ")' "${file}"
 
     return 0
 }
@@ -766,7 +730,7 @@ _app_helper_commands_completions() {
 _app_helper_options_completions() {
     file="$(_app_helper_get_dir)/conf/completion_options.list"
 
-    cat <"${file}" | tr "[:space:]" " "
+    jq --raw-output --raw-input --slurp 'split("\n") | join(" ")' "${file}"
 
     return 0
 }
@@ -776,13 +740,26 @@ _app_helper_composer_completions() {
         return 0
     fi
 
-    file="$(_app_helper_get_tmp_dir)/composer_commands.list"
+    file="$(_app_helper_get_tmp_dir)/composer_commands.json"
+    cur_command="list"
+    current_word="${1}"
+    current_command="${2}"
+    word_list=""
 
-    if [ ! -f "${file}" ] && [ -w "$(dirname "${file}")" ]; then
-        $(_app_helper_get_path) composer -- list --format=json | jq -r .namespaces[].commands[] >"${file}"
+    if [ ! -f "${file}" ]; then
+        $(_app_helper_get_path) composer -- list --format=json >"${file}"
     fi
 
-    cat <"${file}" | tr "[:space:]" " "
+    if test "${current_word}" -eq 2; then
+        word_list="$(jq --raw-output '.namespaces[].commands | join(" ")' "${file}")"
+    else
+        cur_command="${current_command}"
+    fi
+
+    options_list="$(jq --arg cur_command "${cur_command}" --raw-output '.commands[] | select(.name==$cur_command) | [.definition.options[].name] | join(" ")' "${file}")"
+    word_list="${word_list} ${options_list}"
+
+    echo "${word_list}"
 
     return 0
 }
@@ -792,13 +769,26 @@ _app_helper_artisan_completions() {
         return 0
     fi
 
-    file="$(_app_helper_get_tmp_dir)/artisan_commands.list"
+    file="$(_app_helper_get_tmp_dir)/artisan_commands.json"
+    cur_command="list"
+    current_word="${1}"
+    current_command="${2}"
+    word_list=""
 
-    if [ ! -f "${file}" ] && [ -w "$(dirname "${file}")" ]; then
-        $(_app_helper_get_path) artisan -- list --format=json | jq -r .namespaces[].commands[] >"${file}"
+    if [ ! -f "${file}" ]; then
+        $(_app_helper_get_path) artisan -- list --format=json >"${file}"
     fi
 
-    cat <"${file}" | tr "[:space:]" " "
+    if test "${current_word}" -eq 2; then
+        word_list="$(jq --raw-output '.namespaces[].commands | join(" ")' "${file}")"
+    else
+        cur_command="${current_command}"
+    fi
+
+    options_list="$(jq --arg cur_command "${cur_command}" --raw-output '.commands[] | select(.name==$cur_command) | [.definition.options[].name] | join(" ")' "${file}")"
+    word_list="${word_list} ${options_list}"
+
+    echo "${word_list}"
 
     return 0
 }
@@ -810,7 +800,7 @@ _app_helper_npm_commands_completions() {
 
     file="$(_app_helper_get_dir)/conf/npm_commands.list"
 
-    cat <"${file}" | tr "[:space:]" " "
+    jq --raw-output --raw-input --slurp 'split("\n") | join(" ")' "${file}"
 
     return 0
 }
@@ -822,7 +812,7 @@ _app_helper_node_options_completions() {
 
     file="$(_app_helper_get_dir)/conf/node_options.list"
 
-    cat <"${file}" | tr "[:space:]" " "
+    jq --raw-output --raw-input --slurp 'split("\n") | join(" ")' "${file}"
 
     return 0
 }
@@ -837,11 +827,11 @@ _app_helper_completion() {
         # artisan completion
         artisan)
             COMP_WORDBREAKS=${COMP_WORDBREAKS//:/}
-            word_list="$(_app_helper_artisan_completions)"
+            word_list="$(_app_helper_artisan_completions "${COMP_CWORD}" "${COMP_WORDS[2]}")"
             ;;
         # composer completion
         composer)
-            word_list="$(_app_helper_composer_completions)"
+            word_list="$(_app_helper_composer_completions "${COMP_CWORD}" "${COMP_WORDS[2]}")"
             ;;
         # npm completion. Stolen from the `npm completion` command
         npm)
