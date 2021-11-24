@@ -588,7 +588,6 @@ _app_helper_run_command() {
     up) _app_helper_run_up ;;
 
     install) _app_helper_install ;;
-    update) _app_helper_git_update ;;
 
     php | npm | node)
         case "$(_app_helper_get_command_install_location "${command}")" in
