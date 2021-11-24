@@ -112,7 +112,7 @@ _app_helper_get_tmp_dir() {
         return 0
     fi
 
-    _APP_HELPER_TEMP_DIR="$(_app_helper_get_dir)/.tmp"
+    _APP_HELPER_TEMP_DIR="/tmp"
 
     export _APP_HELPER_TEMP_DIR
 
@@ -672,11 +672,8 @@ _app_helper_run_local() {
 }
 
 _app_helper_clear_tmp() {
-    for file in "$(_app_helper_get_tmp_dir)"/*.list; do
-        if [ -w "${file}" ]; then
-            rm "${file}"
-        fi
-    done
+    test -f "$(_app_helper_get_tmp_dir)/composer_commands.json" && rm -rf "$(_app_helper_get_tmp_dir)/composer_commands.json"
+    test -f "$(_app_helper_get_tmp_dir)/artisan_commands.json" && rm -rf "$(_app_helper_get_tmp_dir)/artisan_commands.json"
 }
 
 _app_helper_load_environment() {
