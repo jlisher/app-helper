@@ -598,8 +598,8 @@ _app_helper_run_command() {
         ;;
     artisan)
         case "$(_app_helper_get_command_install_location "artisan")" in
-        1) _app_helper_run_container "php artisan" ;;
-        2) _app_helper_run_local "php artisan" ;;
+        1) _app_helper_run_container "php -d memory_limit=-1 artisan" ;;
+        2) _app_helper_run_local "php -d memory_limit=-1 artisan" ;;
         esac
         ;;
     composer)
