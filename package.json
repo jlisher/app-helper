@@ -1,6 +1,6 @@
 {
   "name": "jlisher-app-helper",
-  "version": "v0.1.1",
+  "version": "v0.2.0",
   "description": "App Helper is a docker compose application development helper utility.",
   "keywords": [
     "docker",

@@ -1,19 +1,15 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
-# Get the parent directory
-DIR="$(realpath "${0}")"
-DIR="$(dirname "${DIR}")"
+set -e # exit on non-zero returns
 
-# source required files
-source "${DIR}/variables.sh"
-source "${DIR}/print.sh"
-source "${DIR}/core.sh"
+# I hope this works
+if ! command -v _app_helper_run >/dev/null 2>&1; then
+    path="${0}"
+    path="$(dirname "${path}")"
+    path="${path}/bashrc.sh"
 
-# Help if no arguments passed
-[[ "$#" -eq 0 ]] && _app_helper_print_help
+    # shellcheck disable=SC1090
+    . "${path}"
+fi
 
-# Collect passed arguments
-_app_helper_collect_arguments "$@"
-
-# Run the command
-_app_helper_run_command
+_app_helper_run "${@}"
