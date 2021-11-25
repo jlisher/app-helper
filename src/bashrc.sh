@@ -5,6 +5,8 @@
 # This should be source`d in the current working shell to allow you to take full
 # advantage of this utility.
 #
+# shellcheck disable=SC2039
+# shellcheck disable=SC2207
 
 if [ "${_APP_HELPER_DEBUG}" = "1" ]; then
     set -x # debugging, this is prints every command executed.
@@ -144,7 +146,7 @@ _app_helper_print_help() {
 $(_app_helper_get_name): is a utility tool that makes working with the underlying docker container easier and faster.
 
 Usage:
-    $(_app_helper_get_alias) COMMAND [OPTIONS] [--] [OPTIONS...]
+    $(_app_helper_get_alias) [OPTIONS] COMMAND [--] [COMMAND_OPTIONS...]
 
 COMMAND
     artisan     Used to run the artisan command of laravel.
@@ -165,9 +167,13 @@ OPTIONS
     -s | --service NAME         The name of the service in the docker-compose.yml file.
     -h | --help                 Print this message and exit.
     -v | --version              Print version information.
-    --                          Pass arguments after this thru to the command
+    --                          Stop processing arguments
 
     Please reference the relative tool's documentation for further information.
+
+COMMAND_OPTIONS
+    These are the options that should be passed to the COMMAND.
+    All options set after the COMMAND will automatically be passed to the COMMAND.
 
 Note: Environment variables are available however not documented yet. see .bashrc for details.
 EOF
@@ -454,7 +460,7 @@ _app_helper_check_command_install() {
 
 _app_helper_collect_arguments() {
     # parse options
-    while [ ! "${1}" = '--' ] && [ -n "${1}" ]; do
+    while true; do
         case "${1}" in
         -v | --version)
             _app_helper_print_version
@@ -466,38 +472,34 @@ _app_helper_collect_arguments() {
             shift
             _app_helper_options_map_base_dir="${1}"
             export _app_helper_options_map_base_dir
+            shift
             ;;
         -f | --compose-file)
             shift
             _app_helper_options_map_compose_file="${1}"
             export _app_helper_options_map_compose_file
+            shift
             ;;
         -u | --user)
             shift
             _app_helper_options_map_user="${1}"
             export _app_helper_options_map_user
+            shift
             ;;
         -s | --service)
             shift
             _app_helper_options_map_service="${1}"
             export _app_helper_options_map_service
-            ;;
-        # catch any options (args starting with `-`)
-        -*)
-            _app_helper_pass_thru="${_app_helper_pass_thru} ${1}"
+            shift
             ;;
         *)
-            # parse command
-            if [ -z "${_app_helper_options_map_command}" ]; then
-                _app_helper_options_map_command="${1}"
-                export _app_helper_options_map_command
-            else
-                # add all unneeded arguments to the `_app_helper_pass_thru_array` array
-                _app_helper_pass_thru="${_app_helper_pass_thru} ${1}"
-            fi
+            _app_helper_options_map_command="${1}"
+            export _app_helper_options_map_command
+            shift
+            # break out of the while loop if we have a command set
+            break
             ;;
         esac
-        shift
     done
 
     # check for pass thru argument and shift it off
@@ -816,7 +818,9 @@ _app_helper_node_options_completions() {
 _app_helper_completion() {
     if [ "${COMP_CWORD}" -eq 1 ]; then
         word_list="$(_app_helper_commands_completions)"
+        word_list="${word_list} $(_app_helper_options_completions)"
     else
+        # TODO: update this to allow the command to be found even if it is not the first argument
         cur_command="${COMP_WORDS[1]}"
 
         case "${cur_command}" in
@@ -836,11 +840,13 @@ _app_helper_completion() {
         node)
             word_list="$(_app_helper_node_options_completions)"
             ;;
+        # add the options completions if no command has been used
+        *)
+            word_list="${word_list} $(_app_helper_options_completions)"
         esac
     fi
 
     if [ -n "${word_list}" ]; then
-        word_list="${word_list} $(_app_helper_options_completions)"
         COMPREPLY=($(compgen -W "${word_list}" -- "${COMP_WORDS[COMP_CWORD]}"))
     else
         COMPREPLY=($(compgen -o default -- "${COMP_WORDS[COMP_CWORD]}"))
